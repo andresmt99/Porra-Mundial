@@ -978,32 +978,134 @@
     }
 
     async function syncPlayersToSupabase() {
-      const players = state.players
+      const webPlayers = state.players
         .filter(player => player?.id && player?.name)
         .map(player => ({
-          id: player.id,
-          name: player.name,
+          id: String(player.id),
+          name: player.name.trim(),
           created_at: player.createdAt || new Date().toISOString()
         }));
 
-      if (!players.length) return [];
+      console.log("WEB -> Supabase sync started");
+      console.log("Players currently in web state:", webPlayers);
 
-      setSyncStatus("Sincronizando", "local");
-      const endpoint = `${SUPABASE_URL}/rest/v1/${SUPABASE_PLAYERS_TABLE}?on_conflict=id`;
-      const response = await fetch(endpoint, {
-        method: "POST",
-        headers: supabaseHeaders({ Prefer: "resolution=merge-duplicates,return=representation" }),
-        body: JSON.stringify(players)
-      });
-
-      if (!response.ok) {
-        const details = await response.text();
-        throw new Error(`Sync players failed (${response.status}): ${details}`);
+      if (!webPlayers.length) {
+        console.log("No web players to synchronize.");
+        alert("No hay jugadores en la web para sincronizar.");
+        return { inserted: [], updated: [], skipped: [], errors: [] };
       }
 
-      const rows = await response.json();
-      setSyncStatus("Online", "online");
-      return rows;
+      setSyncStatus("Sincronizando", "local");
+
+      try {
+        const selectEndpoint = `${SUPABASE_URL}/rest/v1/${SUPABASE_PLAYERS_TABLE}?select=*`;
+        const selectResponse = await fetch(selectEndpoint, { headers: supabaseHeaders() });
+        const supabasePlayers = selectResponse.ok ? await selectResponse.json() : [];
+        const selectError = selectResponse.ok ? null : await selectResponse.text();
+
+        console.log("Players currently in Supabase:", supabasePlayers);
+        console.log("Supabase select error:", selectError);
+
+        if (!selectResponse.ok) {
+          throw new Error(`Select players failed (${selectResponse.status}): ${selectError}`);
+        }
+
+        const supabaseById = new Map(supabasePlayers.map(player => [String(player.id), player]));
+        const supabaseByName = new Map(supabasePlayers.map(player => [String(player.name || "").trim().toLowerCase(), player]));
+        const toInsert = [];
+        const toUpdate = [];
+        const skipped = [];
+
+        webPlayers.forEach(player => {
+          const existing = supabaseById.get(player.id) || supabaseByName.get(player.name.toLowerCase());
+          if (!existing) {
+            toInsert.push(player);
+            return;
+          }
+
+          const normalizedExistingName = String(existing.name || "").trim();
+          const existingCreatedAt = existing.created_at || "";
+          const needsUpdate = normalizedExistingName !== player.name || (!existingCreatedAt && player.created_at);
+
+          if (needsUpdate) {
+            toUpdate.push({
+              matchId: String(existing.id),
+              payload: {
+                id: String(existing.id),
+                name: player.name,
+                created_at: existing.created_at || player.created_at
+              }
+            });
+          } else {
+            skipped.push(player);
+          }
+        });
+
+        console.log("Players to insert:", toInsert);
+        console.log("Players to update:", toUpdate);
+        console.log("Players already synchronized:", skipped);
+
+        const inserted = [];
+        const updated = [];
+        const errors = [];
+
+        if (toInsert.length) {
+          const insertEndpoint = `${SUPABASE_URL}/rest/v1/${SUPABASE_PLAYERS_TABLE}`;
+          const insertResponse = await fetch(insertEndpoint, {
+            method: "POST",
+            headers: supabaseHeaders({ Prefer: "return=representation" }),
+            body: JSON.stringify(toInsert)
+          });
+          const insertData = insertResponse.ok ? await insertResponse.json() : null;
+          const insertError = insertResponse.ok ? null : await insertResponse.text();
+
+          console.log("Insert data:", insertData);
+          console.log("Insert error:", insertError);
+
+          if (!insertResponse.ok) {
+            errors.push(`Insert failed (${insertResponse.status}): ${insertError}`);
+          } else {
+            inserted.push(...insertData);
+          }
+        }
+
+        for (const item of toUpdate) {
+          const updateEndpoint = `${SUPABASE_URL}/rest/v1/${SUPABASE_PLAYERS_TABLE}?id=eq.${encodeURIComponent(item.matchId)}`;
+          const updateResponse = await fetch(updateEndpoint, {
+            method: "PATCH",
+            headers: supabaseHeaders({ Prefer: "return=representation" }),
+            body: JSON.stringify(item.payload)
+          });
+          const updateData = updateResponse.ok ? await updateResponse.json() : null;
+          const updateError = updateResponse.ok ? null : await updateResponse.text();
+
+          console.log(`Update data for ${item.matchId}:`, updateData);
+          console.log(`Update error for ${item.matchId}:`, updateError);
+
+          if (!updateResponse.ok) {
+            errors.push(`Update ${item.matchId} failed (${updateResponse.status}): ${updateError}`);
+          } else {
+            updated.push(...updateData);
+          }
+        }
+
+        if (errors.length) {
+          console.error("WEB -> Supabase sync finished with errors:", errors);
+          setSyncStatus("Error Supabase", "local");
+          alert(`Sincronización incompleta: ${inserted.length} insertados, ${updated.length} actualizados, ${errors.length} errores. Revisa la consola.`);
+        } else {
+          console.log("WEB -> Supabase sync finished successfully", { inserted, updated, skipped });
+          setSyncStatus("Online", "online");
+          alert(`Sincronización completada: ${inserted.length} insertados, ${updated.length} actualizados, ${skipped.length} ya estaban correctos.`);
+        }
+
+        return { inserted, updated, skipped, errors };
+      } catch (error) {
+        console.error("WEB -> Supabase sync failed:", error);
+        setSyncStatus("Error Supabase", "local");
+        alert("No se pudieron sincronizar los jugadores con Supabase. Revisa la consola para ver el error exacto.");
+        return { inserted: [], updated: [], skipped: [], errors: [error] };
+      }
     }
 
     function createPlayer(name) {
@@ -1521,7 +1623,7 @@
             <button class="primary-btn" type="submit">Añadir jugador</button>
           </form>
           <div class="cta-row" style="margin-top:14px">
-            <button class="ghost-btn" onclick="syncPlayersNow()">Sincronizar jugadores con Supabase</button>
+            <button class="ghost-btn" onclick="syncPlayersToSupabase()">Sincronizar jugadores con Supabase</button>
           </div>
         </article>
         <div class="grid three" style="margin-top:18px">
@@ -1584,14 +1686,7 @@
     }
 
     async function syncPlayersNow() {
-      try {
-        const rows = await syncPlayersToSupabase();
-        alert(`${rows.length} jugadores sincronizados con Supabase.`);
-      } catch (error) {
-        console.error("No se pudieron sincronizar los jugadores con Supabase:", error);
-        setSyncStatus("Error Supabase", "local");
-        alert("No se pudieron sincronizar los jugadores. Revisa la tabla players, las policies RLS y la consola.");
-      }
+      return syncPlayersToSupabase();
     }
 
     function selectPlayer(id) {
