@@ -914,6 +914,48 @@
       }
     }
 
+    function normalizeSupabasePlayer(row) {
+      return {
+        id: String(row.id),
+        name: row.name || "Sin nombre",
+        createdAt: row.created_at || row.createdAt || new Date().toISOString()
+      };
+    }
+
+    async function loadPlayersFromSupabase() {
+      setSyncStatus("Cargando jugadores", "local");
+      try {
+        const endpoint = `${SUPABASE_URL}/rest/v1/${SUPABASE_PLAYERS_TABLE}?select=*&order=created_at.asc`;
+        const response = await fetch(endpoint, { headers: supabaseHeaders() });
+        const data = response.ok ? await response.json() : null;
+        const error = response.ok ? null : await response.text();
+
+        console.log("Supabase players data:", data);
+        console.log("Supabase players error:", error);
+
+        if (!response.ok) throw new Error(`Select players failed (${response.status}): ${error}`);
+
+        if (Array.isArray(data) && data.length > 0) {
+          state.players = data.map(normalizeSupabasePlayer);
+          if (!state.players.some(player => player.id === state.activePlayerId)) {
+            state.activePlayerId = state.players[0].id;
+          }
+          state.players.forEach(player => {
+            if (!state.predictions[player.id]) state.predictions[player.id] = defaultPrediction();
+          });
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+          render();
+        }
+
+        setSyncStatus("Online", "online");
+        return data || [];
+      } catch (error) {
+        console.error("No se pudieron cargar los jugadores desde Supabase:", error);
+        setSyncStatus("Local", "local");
+        return state.players || [];
+      }
+    }
+
     async function insertPlayerInSupabase(player) {
       const endpoint = `${SUPABASE_URL}/rest/v1/${SUPABASE_PLAYERS_TABLE}`;
       const response = await fetch(endpoint, {
@@ -1605,7 +1647,7 @@
 
     window.addEventListener("load", () => {
       render();
-      hydrateFromSupabase();
+      hydrateFromSupabase().finally(() => loadPlayersFromSupabase());
       setInterval(() => state.activeTab === "home" && render(), 60000);
       setTimeout(() => document.getElementById("loader").classList.add("is-hidden"), 550);
     });
