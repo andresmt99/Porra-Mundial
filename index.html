@@ -1015,6 +1015,7 @@
         const toInsert = [];
         const toUpdate = [];
         const skipped = [];
+        const webIds = new Set(webPlayers.map(player => player.id));
 
         webPlayers.forEach(player => {
           const existing = supabaseById.get(player.id) || supabaseByName.get(player.name.toLowerCase());
@@ -1041,12 +1042,16 @@
           }
         });
 
+        const toDelete = supabasePlayers.filter(player => !webIds.has(String(player.id)));
+
         console.log("Players to insert:", toInsert);
         console.log("Players to update:", toUpdate);
+        console.log("Players to delete from Supabase:", toDelete);
         console.log("Players already synchronized:", skipped);
 
         const inserted = [];
         const updated = [];
+        const deleted = [];
         const errors = [];
 
         if (toInsert.length) {
@@ -1089,22 +1094,41 @@
           }
         }
 
+        for (const player of toDelete) {
+          const deleteEndpoint = `${SUPABASE_URL}/rest/v1/${SUPABASE_PLAYERS_TABLE}?id=eq.${encodeURIComponent(String(player.id))}`;
+          const deleteResponse = await fetch(deleteEndpoint, {
+            method: "DELETE",
+            headers: supabaseHeaders({ Prefer: "return=representation" })
+          });
+          const deleteData = deleteResponse.ok ? await deleteResponse.json() : null;
+          const deleteError = deleteResponse.ok ? null : await deleteResponse.text();
+
+          console.log(`Delete data for ${player.id}:`, deleteData);
+          console.log(`Delete error for ${player.id}:`, deleteError);
+
+          if (!deleteResponse.ok) {
+            errors.push(`Delete ${player.id} failed (${deleteResponse.status}): ${deleteError}`);
+          } else {
+            deleted.push(...deleteData);
+          }
+        }
+
         if (errors.length) {
           console.error("WEB -> Supabase sync finished with errors:", errors);
           setSyncStatus("Error Supabase", "local");
-          alert(`Sincronización incompleta: ${inserted.length} insertados, ${updated.length} actualizados, ${errors.length} errores. Revisa la consola.`);
+          alert(`Sincronización incompleta: ${inserted.length} insertados, ${updated.length} actualizados, ${deleted.length} eliminados, ${errors.length} errores. Revisa la consola.`);
         } else {
-          console.log("WEB -> Supabase sync finished successfully", { inserted, updated, skipped });
+          console.log("WEB -> Supabase sync finished successfully", { inserted, updated, deleted, skipped });
           setSyncStatus("Online", "online");
-          alert(`Sincronización completada: ${inserted.length} insertados, ${updated.length} actualizados, ${skipped.length} ya estaban correctos.`);
+          alert(`Sincronización completada: ${inserted.length} insertados, ${updated.length} actualizados, ${deleted.length} eliminados, ${skipped.length} ya estaban correctos.`);
         }
 
-        return { inserted, updated, skipped, errors };
+        return { inserted, updated, deleted, skipped, errors };
       } catch (error) {
         console.error("WEB -> Supabase sync failed:", error);
         setSyncStatus("Error Supabase", "local");
         alert("No se pudieron sincronizar los jugadores con Supabase. Revisa la consola para ver el error exacto.");
-        return { inserted: [], updated: [], skipped: [], errors: [error] };
+        return { inserted: [], updated: [], deleted: [], skipped: [], errors: [error] };
       }
     }
 
