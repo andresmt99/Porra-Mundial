@@ -6,44 +6,61 @@
   <title>Porra Mundial 2026</title>
   <style>
     :root {
-      --bg: #05070d;
-      --panel: rgba(16, 22, 35, .68);
-      --panel-strong: rgba(24, 32, 48, .88);
-      --line: rgba(255, 255, 255, .1);
-      --muted: #8f9aae;
+      color-scheme: dark;
+      forced-color-adjust: none;
+      --bg: #031411;
+      --bg-2: #06231d;
+      --bg-3: #0a3026;
+      --panel: rgba(8, 34, 28, .86);
+      --panel-strong: rgba(10, 43, 35, .94);
+      --line: rgba(177, 255, 220, .14);
+      --muted: #9ab8ad;
       --text: #f5f7fb;
-      --green: #39f0a0;
-      --cyan: #59d9ff;
+      --green: #38ef9a;
+      --cyan: #52e6c2;
       --gold: #f9c85b;
       --red: #ff6877;
-      --blue: #607dff;
-      --shadow: 0 22px 80px rgba(0, 0, 0, .42);
+      --blue: #5ad1ff;
+      --shadow: 0 22px 80px rgba(0, 0, 0, .5);
       --radius: 18px;
     }
 
-    * { box-sizing: border-box; }
+    * {
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+    }
 
-    html { scroll-behavior: smooth; }
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    html {
+      scroll-behavior: smooth;
+      background: #031411;
+    }
 
-<script>
-const { createClient } = supabase;
-
-const supabaseClient = createClient(
-  'https://ehpjijkizijxxenhfupo.supabase.co',
-  'TU_ANON_KEY'
-);
-</script>
     body {
       margin: 0;
       min-height: 100vh;
       color: var(--text);
       font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
       background:
-        radial-gradient(circle at 8% 8%, rgba(57, 240, 160, .15), transparent 34%),
-        radial-gradient(circle at 92% 18%, rgba(89, 217, 255, .14), transparent 32%),
-        linear-gradient(135deg, #05070d 0%, #0b1220 48%, #060811 100%);
+        radial-gradient(circle at 10% 6%, rgba(56, 239, 154, .22), transparent 32%),
+        radial-gradient(circle at 88% 12%, rgba(82, 230, 194, .12), transparent 30%),
+        radial-gradient(circle at 50% 110%, rgba(249, 200, 91, .09), transparent 36%),
+        linear-gradient(135deg, #031411 0%, #06231d 46%, #020b0a 100%);
+      background-color: #031411;
+      background-attachment: fixed;
       overflow-x: hidden;
+      -webkit-font-smoothing: antialiased;
+      text-rendering: geometricPrecision;
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      z-index: -2;
+      pointer-events: none;
+      background:
+        radial-gradient(circle at 14% 14%, rgba(56, 239, 154, .18), transparent 34%),
+        linear-gradient(135deg, #031411 0%, #06231d 52%, #020b0a 100%);
     }
 
     button, input, select { font: inherit; }
@@ -60,7 +77,7 @@ const supabaseClient = createClient(
       z-index: 50;
       display: grid;
       place-items: center;
-      background: #05070d;
+      background: #031411;
       transition: opacity .55s ease, visibility .55s ease;
     }
 
@@ -85,21 +102,28 @@ const supabaseClient = createClient(
       position: absolute;
       inset: 9px;
       border-radius: 50%;
-      background: #05070d;
+      background: #031411;
     }
 
     @keyframes spin { to { transform: rotate(360deg); } }
 
-    .app-shell { min-height: 100vh; }
+    .app-shell {
+      min-height: 100vh;
+      background:
+        linear-gradient(rgba(255,255,255,.025) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,.018) 1px, transparent 1px);
+      background-size: 56px 56px;
+    }
 
     .topbar {
       position: sticky;
       top: 0;
       z-index: 20;
       padding: 14px clamp(14px, 3vw, 34px);
-      background: rgba(5, 7, 13, .72);
+      background: rgba(3, 20, 17, .9);
       border-bottom: 1px solid var(--line);
       backdrop-filter: blur(22px);
+      -webkit-backdrop-filter: blur(22px);
     }
 
     .nav-wrap {
@@ -130,6 +154,29 @@ const supabaseClient = createClient(
       box-shadow: 0 0 28px rgba(57, 240, 160, .25);
     }
 
+    .sync-status {
+      min-width: max-content;
+      padding: 8px 11px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,.1);
+      color: var(--muted);
+      background: rgba(177,255,220,.055);
+      font-size: 12px;
+      font-weight: 850;
+    }
+
+    .sync-status.online {
+      color: var(--green);
+      border-color: rgba(57,240,160,.24);
+      background: rgba(57,240,160,.08);
+    }
+
+    .sync-status.local {
+      color: var(--gold);
+      border-color: rgba(249,200,91,.24);
+      background: rgba(249,200,91,.08);
+    }
+
     .tabs {
       flex: 1;
       display: flex;
@@ -138,7 +185,7 @@ const supabaseClient = createClient(
       overflow-x: auto;
       border: 1px solid var(--line);
       border-radius: 15px;
-      background: rgba(255,255,255,.045);
+      background: rgba(177,255,220,.055);
       scrollbar-width: none;
     }
 
@@ -154,7 +201,7 @@ const supabaseClient = createClient(
       transition: color .22s ease, background .22s ease, transform .22s ease;
     }
 
-    .tab:hover { color: var(--text); background: rgba(255,255,255,.06); }
+    .tab:hover { color: var(--text); background: rgba(177,255,220,.08); }
     .tab.active {
       color: #071017;
       background: linear-gradient(135deg, var(--green), var(--cyan));
@@ -184,8 +231,11 @@ const supabaseClient = createClient(
     .card {
       border: 1px solid var(--line);
       border-radius: var(--radius);
-      background: var(--panel);
+      background:
+        linear-gradient(145deg, rgba(177,255,220,.07), rgba(255,255,255,.025)),
+        var(--panel);
       backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
       box-shadow: var(--shadow);
     }
 
@@ -206,9 +256,9 @@ const supabaseClient = createClient(
       border-radius: 26px;
       border: 1px solid rgba(255,255,255,.14);
       background:
-        linear-gradient(130deg, rgba(57,240,160,.17), transparent 35%),
-        linear-gradient(45deg, rgba(96,125,255,.18), rgba(249,200,91,.1)),
-        rgba(255,255,255,.045);
+        linear-gradient(130deg, rgba(56,239,154,.22), transparent 38%),
+        linear-gradient(45deg, rgba(6,48,38,.95), rgba(10,70,55,.82)),
+        #08221c;
       box-shadow: 0 28px 100px rgba(0,0,0,.5);
     }
 
@@ -232,7 +282,7 @@ const supabaseClient = createClient(
       border: 1px solid rgba(255,255,255,.12);
       border-radius: 999px;
       color: var(--green);
-      background: rgba(57,240,160,.08);
+      background: rgba(56,239,154,.1);
       font-size: 13px;
       font-weight: 800;
     }
@@ -251,7 +301,7 @@ const supabaseClient = createClient(
     .hero p {
       position: relative;
       max-width: 640px;
-      color: #c7d1e2;
+      color: #c4ded5;
       font-size: clamp(16px, 2vw, 20px);
       line-height: 1.6;
     }
@@ -284,8 +334,8 @@ const supabaseClient = createClient(
 
     .ghost-btn {
       color: var(--text);
-      background: rgba(255,255,255,.07);
-      border: 1px solid rgba(255,255,255,.11);
+      background: rgba(177,255,220,.08);
+      border: 1px solid rgba(177,255,220,.13);
     }
 
     .danger-btn {
@@ -307,7 +357,7 @@ const supabaseClient = createClient(
       padding: 18px;
       border-radius: var(--radius);
       border: 1px solid var(--line);
-      background: rgba(255,255,255,.055);
+      background: rgba(177,255,220,.065);
     }
 
     .countdown .metric {
@@ -352,7 +402,7 @@ const supabaseClient = createClient(
       position: absolute;
       inset: auto 18px 0;
       height: 1px;
-      background: linear-gradient(90deg, transparent, rgba(89,217,255,.8), transparent);
+      background: linear-gradient(90deg, transparent, rgba(56,239,154,.72), transparent);
     }
 
     .teams-row, .team-pill {
@@ -367,7 +417,7 @@ const supabaseClient = createClient(
       min-width: 0;
       padding: 10px 12px;
       border-radius: 999px;
-      background: rgba(255,255,255,.06);
+      background: rgba(177,255,220,.075);
       font-weight: 900;
     }
 
@@ -391,7 +441,7 @@ const supabaseClient = createClient(
     .progress-shell {
       height: 10px;
       border-radius: 999px;
-      background: rgba(255,255,255,.08);
+      background: rgba(177,255,220,.09);
       overflow: hidden;
     }
 
@@ -411,21 +461,23 @@ const supabaseClient = createClient(
       padding: 16px;
       border: 1px solid var(--line);
       border-radius: var(--radius);
-      background: rgba(255,255,255,.05);
+      background: rgba(177,255,220,.06);
       transition: transform .2s ease, border-color .2s ease, background .2s ease;
     }
 
     .favorite-card:hover, .player-card:hover {
       transform: translateY(-3px);
-      border-color: rgba(89,217,255,.36);
-      background: rgba(255,255,255,.075);
+      border-color: rgba(56,239,154,.34);
+      background: rgba(177,255,220,.09);
     }
 
     .group-card {
       padding: 18px;
       border-radius: 20px;
       border: 1px solid var(--line);
-      background: rgba(255,255,255,.052);
+      background:
+        linear-gradient(145deg, rgba(177,255,220,.06), rgba(255,255,255,.02)),
+        rgba(8,34,28,.78);
       transition: border-color .2s ease, transform .2s ease;
     }
 
@@ -450,7 +502,7 @@ const supabaseClient = createClient(
       gap: 10px;
       padding: 10px 12px;
       border-radius: 13px;
-      background: rgba(255,255,255,.045);
+      background: rgba(177,255,220,.055);
       margin-bottom: 8px;
     }
 
@@ -465,8 +517,8 @@ const supabaseClient = createClient(
       width: 100%;
       min-height: 44px;
       color: var(--text);
-      background: rgba(9, 14, 24, .82);
-      border: 1px solid rgba(255,255,255,.12);
+      background: rgba(3, 18, 15, .9);
+      border: 1px solid rgba(177,255,220,.15);
       border-radius: 12px;
       outline: none;
       padding: 0 12px;
@@ -522,14 +574,14 @@ const supabaseClient = createClient(
     }
 
     .round { min-width: 260px; }
-    .round h3 { margin: 0 0 12px; color: #d7deed; }
+    .round h3 { margin: 0 0 12px; color: #d7eee5; }
 
     .ko-match {
       padding: 14px;
       margin-bottom: 12px;
       border-radius: var(--radius);
       border: 1px solid var(--line);
-      background: rgba(255,255,255,.055);
+      background: rgba(177,255,220,.06);
     }
 
     .score-team {
@@ -549,8 +601,8 @@ const supabaseClient = createClient(
       padding: 24px;
       border-color: rgba(249,200,91,.42);
       background:
-        linear-gradient(135deg, rgba(249,200,91,.2), rgba(57,240,160,.08)),
-        rgba(255,255,255,.055);
+        linear-gradient(135deg, rgba(249,200,91,.2), rgba(56,239,154,.11)),
+        rgba(8,34,28,.84);
       animation: glowPulse 2.6s ease-in-out infinite;
     }
 
@@ -568,20 +620,20 @@ const supabaseClient = createClient(
       border-radius: var(--radius);
       border: 1px solid var(--line);
       background:
-        linear-gradient(135deg, rgba(89,217,255,.08), transparent),
-        rgba(255,255,255,.052);
+        linear-gradient(135deg, rgba(56,239,154,.1), transparent),
+        rgba(8,34,28,.78);
       transition: transform .2s ease, border-color .2s ease, background .2s ease;
     }
 
     .extra-card:hover {
       transform: translateY(-2px);
-      border-color: rgba(89,217,255,.34);
+      border-color: rgba(56,239,154,.34);
     }
 
     .extra-card label {
       display: block;
       margin-bottom: 10px;
-      color: #d7deed;
+      color: #d7eee5;
       font-weight: 900;
     }
 
@@ -593,7 +645,7 @@ const supabaseClient = createClient(
 
     .extra-input-wrap input {
       padding-left: 42px;
-      background: rgba(7, 11, 20, .78);
+      background: rgba(3, 18, 15, .9);
     }
 
     .extra-input-wrap::before {
@@ -616,9 +668,9 @@ const supabaseClient = createClient(
       min-height: 34px;
       padding: 8px 10px;
       border-radius: 999px;
-      color: #dfe8f7;
-      background: rgba(255,255,255,.065);
-      border: 1px solid rgba(255,255,255,.1);
+      color: #dff7ee;
+      background: rgba(177,255,220,.075);
+      border: 1px solid rgba(177,255,220,.12);
       font-size: 12px;
       font-weight: 800;
       transition: transform .18s ease, background .18s ease;
@@ -626,7 +678,7 @@ const supabaseClient = createClient(
 
     .suggestion-chip:hover {
       transform: translateY(-1px);
-      background: rgba(57,240,160,.12);
+      background: rgba(56,239,154,.14);
     }
 
     .player-form {
@@ -648,8 +700,8 @@ const supabaseClient = createClient(
     }
 
     .player-card.active {
-      border-color: rgba(57,240,160,.45);
-      background: rgba(57,240,160,.08);
+      border-color: rgba(56,239,154,.45);
+      background: rgba(56,239,154,.1);
     }
 
     .player-meta { flex: 1; min-width: 0; }
@@ -661,7 +713,7 @@ const supabaseClient = createClient(
       display: grid;
       place-items: center;
       border-radius: 14px;
-      background: rgba(89,217,255,.12);
+      background: rgba(56,239,154,.12);
       color: var(--cyan);
       font-weight: 950;
     }
@@ -670,9 +722,9 @@ const supabaseClient = createClient(
       padding: 28px;
       text-align: center;
       color: var(--muted);
-      border: 1px dashed rgba(255,255,255,.16);
+      border: 1px dashed rgba(177,255,220,.18);
       border-radius: var(--radius);
-      background: rgba(255,255,255,.035);
+      background: rgba(177,255,220,.045);
     }
 
     @media (max-width: 980px) {
@@ -706,6 +758,7 @@ const supabaseClient = createClient(
           <span>Porra Mundial</span>
         </div>
         <nav class="tabs" id="tabs" aria-label="Navegación principal"></nav>
+        <div class="sync-status local" id="syncStatus">Local</div>
       </div>
     </header>
     <main id="app"></main>
@@ -716,6 +769,11 @@ const supabaseClient = createClient(
        Datos base y arquitectura SPA
        ========================================================= */
     const STORAGE_KEY = "premium-world-cup-pool-2026-v2";
+    const SUPABASE_URL = "https://ehpjijkizijxxenhfupo.supabase.co";
+    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVocGppamtpemlqeHhlbmhmdXBvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk4NTQyNTksImV4cCI6MjA5NTQzMDI1OX0.ilDbXdZw1Z6MOghHdJL2CNYYTkjTe-g0hpgHC5HyyWc";
+    const SUPABASE_TABLE = "pool_state";
+    const SUPABASE_PLAYERS_TABLE = "players";
+    const SUPABASE_ROW_ID = "worldcup-2026-main";
     const WORLD_CUP_START = new Date("2026-06-11T19:00:00+02:00");
     const TOTAL_MATCHES = 104;
 
@@ -753,7 +811,9 @@ const supabaseClient = createClient(
       ["disappointment", "Selección decepción", "Selección"]
     ];
 
-    const state = loadState();
+    let state = loadState();
+    let syncTimer = null;
+    let isHydratingRemote = false;
 
     function defaultState() {
       const firstPlayer = createPlayer("Invitado");
@@ -782,6 +842,126 @@ const supabaseClient = createClient(
 
     function saveState() {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+      scheduleRemoteSave();
+    }
+
+    function supabaseHeaders(extra = {}) {
+      return {
+        apikey: SUPABASE_ANON_KEY,
+        Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
+        "Content-Type": "application/json",
+        ...extra
+      };
+    }
+
+    function setSyncStatus(text, mode = "local") {
+      const badge = document.getElementById("syncStatus");
+      if (!badge) return;
+      badge.textContent = text;
+      badge.className = `sync-status ${mode}`;
+    }
+
+    async function hydrateFromSupabase() {
+      isHydratingRemote = true;
+      setSyncStatus("Conectando", "local");
+      try {
+        const endpoint = `${SUPABASE_URL}/rest/v1/${SUPABASE_TABLE}?id=eq.${SUPABASE_ROW_ID}&select=data&limit=1`;
+        const response = await fetch(endpoint, { headers: supabaseHeaders() });
+        if (!response.ok) throw new Error(`Supabase ${response.status}`);
+        const rows = await response.json();
+        const remoteState = rows?.[0]?.data;
+        if (remoteState?.players?.length) {
+          state = remoteState;
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+          render();
+          setSyncStatus("Online", "online");
+        } else {
+          await saveRemoteState(true);
+        }
+      } catch (error) {
+        console.warn("Supabase no disponible. Usando localStorage.", error);
+        setSyncStatus("Local", "local");
+      } finally {
+        isHydratingRemote = false;
+      }
+    }
+
+    function scheduleRemoteSave() {
+      if (isHydratingRemote) return;
+      clearTimeout(syncTimer);
+      syncTimer = setTimeout(() => saveRemoteState(), 650);
+    }
+
+    async function saveRemoteState(force = false) {
+      if (!force && isHydratingRemote) return;
+      setSyncStatus("Guardando", "local");
+      try {
+        const endpoint = `${SUPABASE_URL}/rest/v1/${SUPABASE_TABLE}?on_conflict=id`;
+        const response = await fetch(endpoint, {
+          method: "POST",
+          headers: supabaseHeaders({ Prefer: "resolution=merge-duplicates,return=minimal" }),
+          body: JSON.stringify({
+            id: SUPABASE_ROW_ID,
+            data: state,
+            updated_at: new Date().toISOString()
+          })
+        });
+        if (!response.ok) throw new Error(`Supabase ${response.status}`);
+        setSyncStatus("Online", "online");
+      } catch (error) {
+        console.warn("No se pudo guardar en Supabase. Se mantiene copia local.", error);
+        setSyncStatus("Local", "local");
+      }
+    }
+
+    async function insertPlayerInSupabase(player) {
+      const endpoint = `${SUPABASE_URL}/rest/v1/${SUPABASE_PLAYERS_TABLE}`;
+      const response = await fetch(endpoint, {
+        method: "POST",
+        headers: supabaseHeaders({ Prefer: "return=representation" }),
+        body: JSON.stringify({
+          id: player.id,
+          name: player.name,
+          created_at: player.createdAt
+        })
+      });
+
+      if (!response.ok) {
+        const details = await response.text();
+        throw new Error(`Insert players failed (${response.status}): ${details}`);
+      }
+
+      const rows = await response.json();
+      return rows[0];
+    }
+
+    async function syncPlayersToSupabase() {
+      const players = state.players
+        .filter(player => player?.id && player?.name)
+        .map(player => ({
+          id: player.id,
+          name: player.name,
+          created_at: player.createdAt || new Date().toISOString()
+        }));
+
+      if (!players.length) return [];
+
+      setSyncStatus("Sincronizando", "local");
+      const endpoint = `${SUPABASE_URL}/rest/v1/${SUPABASE_PLAYERS_TABLE}?on_conflict=id`;
+      const response = await fetch(endpoint, {
+        method: "POST",
+        headers: supabaseHeaders({ Prefer: "resolution=merge-duplicates,return=representation" }),
+        body: JSON.stringify(players)
+      });
+
+      if (!response.ok) {
+        const details = await response.text();
+        throw new Error(`Sync players failed (${response.status}): ${details}`);
+      }
+
+      const rows = await response.json();
+      setSyncStatus("Online", "online");
+      return rows;
     }
 
     function createPlayer(name) {
@@ -1291,13 +1471,16 @@ const supabaseClient = createClient(
     function renderPlayers() {
       return `
         <div class="section-head">
-          <div><h2>Participantes</h2><p>Predicciones independientes por jugador y guardado automático local.</p></div>
+          <div><h2>Participantes</h2><p>Predicciones independientes por jugador y alta directa en Supabase.</p></div>
         </div>
         <article class="card card-pad">
           <form class="player-form" onsubmit="addPlayer(event)">
             <input id="playerName" placeholder="Nombre del participante" maxlength="32" required />
             <button class="primary-btn" type="submit">Añadir jugador</button>
           </form>
+          <div class="cta-row" style="margin-top:14px">
+            <button class="ghost-btn" onclick="syncPlayersNow()">Sincronizar jugadores con Supabase</button>
+          </div>
         </article>
         <div class="grid three" style="margin-top:18px">
           ${state.players.map(renderPlayerCard).join("")}
@@ -1325,15 +1508,48 @@ const supabaseClient = createClient(
       return name.split(/\s+/).slice(0, 2).map(part => part[0]).join("").toUpperCase();
     }
 
-    function addPlayer(event) {
+    async function addPlayer(event) {
       event.preventDefault();
       const input = document.getElementById("playerName");
-      const player = createPlayer(input.value);
-      state.players.push(player);
-      state.activePlayerId = player.id;
-      state.predictions[player.id] = defaultPrediction();
-      saveState();
-      render();
+      const submit = event.target.querySelector("button[type='submit']");
+      const draftPlayer = createPlayer(input.value);
+
+      submit.disabled = true;
+      setSyncStatus("Guardando jugador", "local");
+
+      try {
+        const savedPlayer = await insertPlayerInSupabase(draftPlayer);
+        const player = {
+          id: savedPlayer.id,
+          name: savedPlayer.name,
+          createdAt: savedPlayer.created_at || draftPlayer.createdAt
+        };
+
+        state.players.push(player);
+        state.activePlayerId = player.id;
+        state.predictions[player.id] = defaultPrediction();
+        input.value = "";
+        saveState();
+        render();
+        setSyncStatus("Online", "online");
+      } catch (error) {
+        console.error("No se pudo insertar el jugador en Supabase:", error);
+        setSyncStatus("Error Supabase", "local");
+        alert("No se pudo guardar el jugador en Supabase. Revisa la tabla players, las policies RLS y la consola.");
+      } finally {
+        submit.disabled = false;
+      }
+    }
+
+    async function syncPlayersNow() {
+      try {
+        const rows = await syncPlayersToSupabase();
+        alert(`${rows.length} jugadores sincronizados con Supabase.`);
+      } catch (error) {
+        console.error("No se pudieron sincronizar los jugadores con Supabase:", error);
+        setSyncStatus("Error Supabase", "local");
+        alert("No se pudieron sincronizar los jugadores. Revisa la tabla players, las policies RLS y la consola.");
+      }
     }
 
     function selectPlayer(id) {
@@ -1389,9 +1605,10 @@ const supabaseClient = createClient(
 
     window.addEventListener("load", () => {
       render();
+      hydrateFromSupabase();
       setInterval(() => state.activeTab === "home" && render(), 60000);
       setTimeout(() => document.getElementById("loader").classList.add("is-hidden"), 550);
     });
-  
+  </script>
 </body>
 </html>
